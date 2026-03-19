@@ -274,6 +274,11 @@ function doExport(format) {
       filename = `死链猎手_${dateStr()}.html`;
       mimeType = 'text/html;charset=utf-8';
       break;
+    case 'txt':
+      content = exportToTXT(data, meta);
+      filename = `死链猎手_${dateStr()}.txt`;
+      mimeType = 'text/plain;charset=utf-8';
+      break;
     case 'csv-dead':
       content = exportToCSV(data.filter(d => d.isDead));
       filename = `死链猎手_死链_${dateStr()}.csv`;

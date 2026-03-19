@@ -225,7 +225,77 @@ ${dead.length > 0 ? `
 </body></html>`;
 }
 
+/**
+ * 导出为 TXT 纯文本格式
+ */
+function exportToTXT(data, meta = {}) {
+  const dead = data.filter(d => d.isDead);
+  const live = data.filter(d => !d.isDead);
+  const exportTime = new Date().toLocaleString('zh-CN');
+
+  // 标题和摘要
+  let txt = `════════════════════════════════════════════════════════════
+                    死链猎手 - 扫描报告
+════════════════════════════════════════════════════════════
+扫描页面：${meta.pageUrl || '-'}
+生成时间：${exportTime}
+
+─────────── 统计摘要 ───────────
+总链接数：${data.length}
+确认死链：${dead.length}
+正常链接：${live.length}
+内链数量：${data.filter(d => d.isInternal).length}
+外链数量：${data.filter(d => !d.isInternal).length}
+`;
+
+  // 死链列表
+  if (dead.length > 0) {
+    txt += `
+════════════════════════════════════════════════════════════
+                      ⚠️ 死链列表 (${dead.length} 条)
+════════════════════════════════════════════════════════════
+`;
+    dead.forEach((item, i) => {
+      txt += `
+[${i + 1}] ${item.url}
+    链接文本：${item.text || '-'}
+    状态码：${item.status || '?'} ${item.statusText || ''}
+    类型：${item.isInternal ? '内链' : '外链'}
+`;
+    });
+  } else {
+    txt += `
+════════════════════════════════════════════════════════════
+                    ✅ 未发现死链
+════════════════════════════════════════════════════════════
+太棒了！当前页面所有链接均正常可访问。
+
+`;
+  }
+
+  // 全部链接列表
+  txt += `
+════════════════════════════════════════════════════════════
+                    📋 全部链接列表 (${data.length} 条)
+════════════════════════════════════════════════════════════
+`;
+  data.forEach((item, i) => {
+    const icon = item.isDead ? '❌' : '✅';
+    txt += `
+[${i + 1}] ${icon} ${item.url}
+    文本：${item.text || '-'} | 状态：${item.status || '?'} | ${item.isInternal ? '内链' : '外链'}
+`;
+  });
+
+  txt += `
+════════════════════════════════════════════════════════════
+                    由 死链猎手 Chrome 插件生成
+════════════════════════════════════════════════════════════
+`;
+  return txt;
+}
+
 // 供 popup.js 使用
 if (typeof module !== 'undefined') {
-  module.exports = { exportToCSV, exportToJSON, exportToHTML };
+  module.exports = { exportToCSV, exportToJSON, exportToHTML, exportToTXT };
 }
