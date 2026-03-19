@@ -42,6 +42,7 @@ async function init() {
   $('filter-all').addEventListener('click', () => filterResults('all'));
   $('filter-dead').addEventListener('click', () => filterResults('dead'));
   $('filter-live').addEventListener('click', () => filterResults('live'));
+  $('filter-restricted').addEventListener('click', () => filterResults('restricted'));
   $('filter-internal').addEventListener('click', () => filterResults('internal'));
   $('filter-external').addEventListener('click', () => filterResults('external'));
   $('search-input').addEventListener('input', onSearch);
@@ -123,7 +124,7 @@ async function loadAndShowResults() {
 }
 
 function renderResults(result) {
-  const { allLinks, deadLinks, total, deadCount, liveCount, scannedAt } = result;
+  const { allLinks, total, deadCount, liveCount, restrictedCount = 0, uncertainCount = 0, scannedAt } = result;
 
   // 统计数据
   $('stat-total').textContent = total;
@@ -143,10 +144,14 @@ function renderResults(result) {
   $('filter-all').querySelector('.badge').textContent = total;
   $('filter-dead').querySelector('.badge').textContent = deadCount;
   $('filter-live').querySelector('.badge').textContent = liveCount;
+  $('filter-restricted').querySelector('.badge').textContent = restrictedCount;
   $('filter-internal').querySelector('.badge').textContent = allLinks.filter(l => l.isInternal).length;
   $('filter-external').querySelector('.badge').textContent = allLinks.filter(l => !l.isInternal).length;
 
-  // 默认显示全部，如果有死链则高亮死链 tab
+  // 隐藏/显示「访问受限」筛选按钮（无数据时隐藏）
+  $('filter-restricted').style.display = restrictedCount > 0 ? '' : 'none';
+
+  // 默认显示死链；无死链时显示全部
   if (deadCount > 0) {
     filterResults('dead');
   } else {
@@ -179,10 +184,17 @@ function renderTable() {
   let data = currentResults.allLinks;
 
   // 过滤
-  if (activeFilter === 'dead') data = data.filter(l => l.isDead);
-  else if (activeFilter === 'live') data = data.filter(l => !l.isDead);
-  else if (activeFilter === 'internal') data = data.filter(l => l.isInternal);
-  else if (activeFilter === 'external') data = data.filter(l => !l.isInternal);
+  if (activeFilter === 'dead') {
+    data = data.filter(l => l.isDead && l.confidence === 'dead');
+  } else if (activeFilter === 'live') {
+    data = data.filter(l => l.confidence === 'live' || (!l.isDead && l.confidence !== 'restricted' && l.confidence !== 'uncertain'));
+  } else if (activeFilter === 'restricted') {
+    data = data.filter(l => l.confidence === 'restricted' || l.confidence === 'uncertain');
+  } else if (activeFilter === 'internal') {
+    data = data.filter(l => l.isInternal);
+  } else if (activeFilter === 'external') {
+    data = data.filter(l => !l.isInternal);
+  }
 
   // 搜索
   if (searchQuery) {
@@ -201,8 +213,21 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = data.slice(0, 200).map(item => `
-    <tr class="${item.isDead ? 'dead' : 'live'}">
+  tbody.innerHTML = data.slice(0, 200).map(item => {
+    const rowClass = item.confidence === 'dead' ? 'dead' :
+                     item.confidence === 'restricted' ? 'restricted' :
+                     item.confidence === 'uncertain' ? 'uncertain' : 'live';
+    const icon = item.confidence === 'dead' ? '❌' :
+                 item.confidence === 'restricted' ? '🔒' :
+                 item.confidence === 'uncertain' ? '❓' : '✅';
+    // tooltip 显示附加说明
+    const noteTitle = item.note ? ` title="${escHtml(item.note)}"` : '';
+    const statusLabel = item.note
+      ? `<span class="status-text" title="${escHtml(item.note)}">${escHtml(item.statusText || '')}</span>`
+      : `<span class="status-text">${escHtml(item.statusText || '')}</span>`;
+
+    return `
+    <tr class="${rowClass}">
       <td class="url-td">
         <div class="url-text" title="${escHtml(item.url)}">
           <a href="${escHtml(item.url)}" target="_blank" class="url-link">${escHtml(truncate(item.url, 55))}</a>
@@ -210,11 +235,12 @@ function renderTable() {
         <div class="link-meta">${escHtml(truncate(item.text || '', 35))}</div>
       </td>
       <td class="center"><span class="status-badge s${Math.floor((item.status || 0) / 100)}xx">${item.status || '?'}</span></td>
-      <td class="status-text">${escHtml(item.statusText || '')}</td>
+      <td>${statusLabel}</td>
       <td class="center"><span class="type-tag ${item.isInternal ? 'int' : 'ext'}">${item.isInternal ? '内' : '外'}</span></td>
-      <td class="center result-icon">${item.isDead ? '❌' : '✅'}</td>
+      <td class="center result-icon"${noteTitle}>${icon}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   if (data.length > 200) {
     tbody.innerHTML += `<tr><td colspan="5" class="empty-row">仅显示前 200 条，请使用导出功能查看完整数据</td></tr>`;

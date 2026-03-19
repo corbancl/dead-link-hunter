@@ -390,7 +390,9 @@
       border-bottom: 1px solid rgba(255,255,255,0.04);
       vertical-align: middle;
     }
-    .result-table tr.dead td { background: rgba(255,95,109,0.03); }
+    .result-table tr.dead td { background: rgba(255,95,109,0.04); }
+    .result-table tr.restricted td { background: rgba(249,199,79,0.03); }
+    .result-table tr.uncertain td { background: rgba(107,109,138,0.04); }
     .result-table tr:hover td { background: rgba(255,255,255,0.03); }
 
     .url-td { max-width: 210px; }
@@ -551,7 +553,7 @@
     <div class="app-name">死链猎手</div>
     <div class="app-desc">页面死链检测 &amp; 导出工具</div>
   </div>
-  <span class="version-tag">v1.0</span>
+  <span class="version-tag">v1.1</span>
 </div>
 
 <!-- Page Info -->
@@ -622,7 +624,7 @@
     </div>
     <div class="stat-item">
       <div class="stat-num danger" id="stat-dead">-</div>
-      <div class="stat-label">死链</div>
+      <div class="stat-label">确认死链</div>
     </div>
     <div class="stat-item">
       <div class="stat-num success" id="stat-live">-</div>
@@ -643,7 +645,8 @@
   <!-- Filters -->
   <div class="filter-bar">
     <button class="filter-btn active" id="filter-all">全部<span class="badge" id="">-</span></button>
-    <button class="filter-btn" id="filter-dead">死链<span class="badge">-</span></button>
+    <button class="filter-btn" id="filter-dead">确认死链<span class="badge">-</span></button>
+    <button class="filter-btn" id="filter-restricted" style="display:none">访问受限<span class="badge">-</span></button>
     <button class="filter-btn" id="filter-live">正常<span class="badge">-</span></button>
     <button class="filter-btn" id="filter-internal">内链<span class="badge">-</span></button>
     <button class="filter-btn" id="filter-external">外链<span class="badge">-</span></button>
