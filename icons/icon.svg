@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f1a"/>
+      <stop offset="100%" style="stop-color:#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="chain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d2ff"/>
+      <stop offset="100%" style="stop-color:#3a7bd5"/>
+    </linearGradient>
+    <linearGradient id="broken" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="100%" style="stop-color:#ee0979"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+
+  <!-- Grid dots -->
+  <g opacity="0.15" fill="#00d2ff">
+    <circle cx="20" cy="20" r="1.5"/>
+    <circle cx="40" cy="20" r="1.5"/>
+    <circle cx="88" cy="20" r="1.5"/>
+    <circle cx="108" cy="20" r="1.5"/>
+    <circle cx="20" cy="108" r="1.5"/>
+    <circle cx="40" cy="108" r="1.5"/>
+    <circle cx="88" cy="108" r="1.5"/>
+    <circle cx="108" cy="108" r="1.5"/>
+  </g>
+
+  <!-- Chain link left (intact) -->
+  <g filter="url(#glow)">
+    <rect x="14" y="50" width="34" height="18" rx="9" fill="none" stroke="url(#chain)" stroke-width="5"/>
+    <rect x="14" y="60" width="34" height="18" rx="9" fill="none" stroke="url(#chain)" stroke-width="5"/>
+  </g>
+
+  <!-- Chain link right (intact) -->
+  <g filter="url(#glow)">
+    <rect x="80" y="50" width="34" height="18" rx="9" fill="none" stroke="url(#chain)" stroke-width="5"/>
+    <rect x="80" y="60" width="34" height="18" rx="9" fill="none" stroke="url(#chain)" stroke-width="5"/>
+  </g>
+
+  <!-- Broken middle section - left stub -->
+  <line x1="48" y1="64" x2="56" y2="64" stroke="url(#broken)" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+  <!-- Broken middle section - right stub -->
+  <line x1="72" y1="64" x2="80" y2="64" stroke="url(#broken)" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Break spark particles -->
+  <g fill="url(#broken)" filter="url(#glow)">
+    <circle cx="64" cy="54" r="2.5"/>
+    <circle cx="60" cy="60" r="1.8"/>
+    <circle cx="68" cy="58" r="1.5"/>
+    <circle cx="64" cy="74" r="2.5"/>
+    <circle cx="62" cy="68" r="1.5"/>
+    <circle cx="67" cy="70" r="1.8"/>
+  </g>
+
+  <!-- X mark in center gap -->
+  <g stroke="url(#broken)" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)">
+    <line x1="58" y1="58" x2="70" y2="70"/>
+    <line x1="70" y1="58" x2="58" y2="70"/>
+  </g>
+
+  <!-- Bottom scan line decoration -->
+  <g opacity="0.4">
+    <line x1="20" y1="94" x2="108" y2="94" stroke="#00d2ff" stroke-width="1"/>
+    <line x1="30" y1="99" x2="98" y2="99" stroke="#00d2ff" stroke-width="0.8" opacity="0.6"/>
+    <line x1="42" y1="104" x2="86" y2="104" stroke="#00d2ff" stroke-width="0.6" opacity="0.4"/>
+  </g>
+
+  <!-- Top accent line -->
+  <line x1="20" y1="34" x2="108" y2="34" stroke="#3a7bd5" stroke-width="1" opacity="0.4"/>
+</svg>

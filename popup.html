@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>死链猎手</title>
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --bg:       #0a0a14;
+      --surface:  #12121f;
+      --surface2: #1a1a2e;
+      --border:   rgba(0, 210, 255, 0.12);
+      --border2:  rgba(255,255,255,0.07);
+      --primary:  #00d2ff;
+      --primary2: #3a7bd5;
+      --danger:   #ff5f6d;
+      --danger2:  #ee0979;
+      --success:  #43e97b;
+      --warn:     #f9c74f;
+      --text:     #e4e4f4;
+      --muted:    #6b6d8a;
+      --radius:   10px;
+    }
+
+    /* ===== Reset & Base ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { width: 420px; overflow-x: hidden; }
+    body {
+      width: 420px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'PingFang SC', 'Microsoft YaHei UI', 'Segoe UI', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .hidden { display: none !important; }
+
+    /* ===== Header ===== */
+    .header {
+      background: linear-gradient(135deg, #0d0d1f 0%, #111130 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(0,210,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(0,210,255,0.35);
+    }
+    .logo svg { width: 22px; height: 22px; }
+    .header-info { flex: 1; min-width: 0; }
+    .app-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+      background: linear-gradient(90deg, #fff 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .app-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .version-tag {
+      font-size: 10px;
+      background: rgba(0,210,255,0.12);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,210,255,0.2);
+      flex-shrink: 0;
+    }
+
+    /* ===== Page Info Bar ===== */
+    .page-info {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      padding: 10px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .page-info-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow: hidden;
+    }
+    .page-info-label {
+      font-size: 10px;
+      color: var(--muted);
+      flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #page-title { font-size: 12px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #page-url { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ===== Views ===== */
+    .view { padding: 20px 18px; }
+
+    /* ===== Idle View ===== */
+    .scan-hero {
+      text-align: center;
+      padding: 28px 18px 24px;
+    }
+    .scan-icon {
+      width: 72px; height: 72px;
+      margin: 0 auto 18px;
+      background: linear-gradient(135deg, rgba(0,210,255,0.12), rgba(58,123,213,0.08));
+      border: 1.5px solid rgba(0,210,255,0.2);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 8px 32px rgba(0,210,255,0.1);
+    }
+    .scan-hero h2 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .scan-hero p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 0 0 20px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+    }
+    .feature-icon { font-size: 16px; flex-shrink: 0; }
+    .feature-text { font-size: 12px; color: var(--muted); }
+    .feature-text strong { color: var(--text); font-weight: 500; }
+
+    /* ===== Buttons ===== */
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,210,255,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,210,255,0.4); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      padding: 9px 16px;
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: var(--surface); border-color: var(--border); }
+
+    .btn-danger {
+      padding: 9px 16px;
+      background: rgba(255,95,109,0.12);
+      color: var(--danger);
+      font-size: 13px;
+      border: 1px solid rgba(255,95,109,0.2);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-danger:hover { background: rgba(255,95,109,0.2); }
+
+    /* ===== Scanning View ===== */
+    .scanning-view {
+      padding: 28px 20px;
+      text-align: center;
+    }
+    .scan-anim {
+      width: 60px; height: 60px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    .scan-anim::before, .scan-anim::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+    }
+    .scan-anim::after {
+      inset: 8px;
+      border-top-color: var(--primary2);
+      animation-duration: 0.7s;
+      animation-direction: reverse;
+    }
+    .scan-center-dot {
+      position: absolute;
+      inset: 22px;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }
+
+    #scan-status {
+      font-size: 14px; font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .progress-wrap {
+      margin: 16px 0 8px;
+      background: var(--surface2);
+      border-radius: 20px;
+      height: 6px;
+      overflow: hidden;
+    }
+    #progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary2));
+      border-radius: 20px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px rgba(0,210,255,0.5);
+    }
+    #progress-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ===== Result View ===== */
+    .result-view { padding: 0; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border-bottom: 1px solid var(--border2);
+    }
+    .stat-item {
+      background: var(--surface);
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-num.primary { color: var(--primary); }
+    .stat-num.danger  { color: var(--danger); }
+    .stat-num.success { color: var(--success); }
+    .stat-num.warn    { color: var(--warn); }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .result-meta {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border2);
+      background: var(--surface);
+    }
+    #scan-time { font-size: 11px; color: var(--muted); }
+    #stat-dead-rate { font-size: 12px; font-weight: 700; }
+    #stat-dead-rate.danger  { color: var(--danger); }
+    #stat-dead-rate.warn    { color: var(--warn); }
+    #stat-dead-rate.success { color: var(--success); }
+
+    /* Filters */
+    .filter-bar {
+      padding: 10px 14px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      border-bottom: 1px solid var(--border2);
+      overflow-x: auto;
+      background: var(--bg);
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--border); color: var(--text); }
+    .filter-btn.active {
+      background: rgba(0,210,255,0.1);
+      border-color: rgba(0,210,255,0.3);
+      color: var(--primary);
+    }
+    .filter-btn .badge {
+      background: rgba(255,255,255,0.08);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+    }
+    .filter-btn.active .badge {
+      background: rgba(0,210,255,0.15);
+      color: var(--primary);
+    }
+
+    /* Search */
+    .search-wrap {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--bg);
+    }
+    #search-input {
+      width: 100%;
+      padding: 7px 12px 7px 32px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6d8a' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 10px center;
+    }
+    #search-input::placeholder { color: var(--muted); }
+    #search-input:focus { border-color: rgba(0,210,255,0.3); }
+
+    /* Table */
+    .table-wrap {
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .table-wrap::-webkit-scrollbar { width: 4px; }
+    .table-wrap::-webkit-scrollbar-track { background: transparent; }
+    .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .result-table { width: 100%; border-collapse: collapse; }
+    .result-table th {
+      padding: 7px 10px;
+      text-align: left;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--surface2);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--border2);
+    }
+    .result-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    .result-table tr.dead td { background: rgba(255,95,109,0.03); }
+    .result-table tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .url-td { max-width: 210px; }
+    .url-link {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--primary);
+      font-size: 12px;
+    }
+    .link-meta {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .center { text-align: center; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .s2xx { background: rgba(67,233,123,0.15); color: var(--success); }
+    .s3xx { background: rgba(249,199,79,0.15); color: var(--warn); }
+    .s4xx { background: rgba(255,95,109,0.15); color: var(--danger); }
+    .s5xx { background: rgba(255,95,109,0.2);  color: #ff3040; }
+    .s0xx  { background: rgba(107,109,138,0.15); color: var(--muted); }
+
+    .type-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+    .int { background: rgba(0,210,255,0.12); color: var(--primary); }
+    .ext { background: rgba(255,255,255,0.07); color: var(--muted); }
+
+    .status-text { font-size: 11px; color: var(--muted); max-width: 80px; }
+    .result-icon { font-size: 13px; }
+    .empty-row { text-align: center; color: var(--muted); padding: 20px !important; }
+
+    /* Result Toolbar */
+    .result-toolbar {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border2);
+      background: var(--surface);
+    }
+    #result-count { font-size: 12px; color: var(--muted); }
+    .toolbar-actions { display: flex; gap: 8px; align-items: center; position: relative; }
+
+    /* Export Menu */
+    #export-menu {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      min-width: 200px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 100;
+      overflow: hidden;
+    }
+    .export-header {
+      padding: 10px 14px 8px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .export-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.1s;
+    }
+    .export-option:hover { background: rgba(0,210,255,0.06); }
+    .export-option .exp-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .export-option .exp-desc { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .export-sep { height: 1px; background: var(--border2); margin: 4px 0; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(0,210,255,0.15);
+      border: 1px solid rgba(0,210,255,0.3);
+      color: var(--primary);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Btn export */
+    .btn-export {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 12px;
+      background: linear-gradient(135deg, rgba(0,210,255,0.12), rgba(58,123,213,0.08));
+      border: 1px solid rgba(0,210,255,0.25);
+      border-radius: var(--radius);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-export:hover {
+      background: linear-gradient(135deg, rgba(0,210,255,0.2), rgba(58,123,213,0.14));
+      border-color: rgba(0,210,255,0.4);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="9" y1="12" x2="11" y2="12" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="13" y1="12" x2="15" y2="12" stroke="#000" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="header-info">
+    <div class="app-name">死链猎手</div>
+    <div class="app-desc">页面死链检测 &amp; 导出工具</div>
+  </div>
+  <span class="version-tag">v1.0</span>
+</div>
+
+<!-- Page Info -->
+<div class="page-info">
+  <div class="page-info-row">
+    <span class="page-info-label">页面</span>
+    <span id="page-title">加载中...</span>
+  </div>
+  <div class="page-info-row">
+    <span class="page-info-label">URL</span>
+    <span id="page-url">-</span>
+  </div>
+</div>
+
+<!-- View: Idle -->
+<div id="view-idle">
+  <div class="scan-hero">
+    <div class="scan-icon">🔍</div>
+    <h2>扫描当前页面死链</h2>
+    <p>自动检测所有链接状态，快速定位失效、404、无法访问的死链</p>
+  </div>
+
+  <div class="feature-list" style="padding: 0 18px;">
+    <div class="feature-item">
+      <span class="feature-icon">⚡</span>
+      <span class="feature-text"><strong>并发检测</strong>，快速扫描页面全量链接</span>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">📊</span>
+      <span class="feature-text">支持导出为 <strong>CSV / JSON / HTML</strong> 三种格式</span>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">🔗</span>
+      <span class="feature-text">区分<strong>内链 / 外链</strong>，精准分析链接质量</span>
+    </div>
+  </div>
+
+  <div style="padding: 0 18px 20px;">
+    <button class="btn-primary" id="btn-scan">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      开始扫描
+    </button>
+  </div>
+</div>
+
+<!-- View: Scanning -->
+<div id="view-scanning" class="hidden">
+  <div class="scanning-view">
+    <div class="scan-anim">
+      <div class="scan-center-dot"></div>
+    </div>
+    <div id="scan-status">正在收集页面链接...</div>
+    <div class="progress-wrap">
+      <div id="progress-bar-fill" style="width:0%"></div>
+    </div>
+    <div id="progress-text">0 / 0</div>
+    <button class="btn-danger" id="btn-cancel">取消扫描</button>
+  </div>
+</div>
+
+<!-- View: Result -->
+<div id="view-result" class="hidden result-view">
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-num primary" id="stat-total">-</div>
+      <div class="stat-label">总链接</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num danger" id="stat-dead">-</div>
+      <div class="stat-label">死链</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num success" id="stat-live">-</div>
+      <div class="stat-label">正常</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num primary" id="stat-internal">-</div>
+      <div class="stat-label">内链</div>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <div class="result-meta">
+    <span id="scan-time">-</span>
+    <span>死链率：<span id="stat-dead-rate" class="success">-</span></span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <button class="filter-btn active" id="filter-all">全部<span class="badge" id="">-</span></button>
+    <button class="filter-btn" id="filter-dead">死链<span class="badge">-</span></button>
+    <button class="filter-btn" id="filter-live">正常<span class="badge">-</span></button>
+    <button class="filter-btn" id="filter-internal">内链<span class="badge">-</span></button>
+    <button class="filter-btn" id="filter-external">外链<span class="badge">-</span></button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="搜索链接地址或文本...">
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table class="result-table">
+      <thead>
+        <tr>
+          <th>链接地址</th>
+          <th>状态</th>
+          <th>说明</th>
+          <th>类型</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="links-tbody">
+        <tr><td colspan="5" class="empty-row">暂无数据</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="result-toolbar">
+    <span id="result-count">-</span>
+    <div class="toolbar-actions">
+      <button class="btn-secondary" id="btn-rescan" style="font-size:12px;padding:7px 12px;">🔄 重新扫描</button>
+      <button class="btn-export" id="btn-export">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        导出
+      </button>
+
+      <!-- Export Menu -->
+      <div id="export-menu" class="hidden">
+        <div class="export-header">选择导出格式</div>
+        <button class="export-option" data-format="csv">
+          <span class="exp-icon">📊</span>
+          <div>
+            <div>CSV 格式</div>
+            <div class="exp-desc">适合 Excel 打开，全量数据</div>
+          </div>
+        </button>
+        <button class="export-option" data-format="csv-dead">
+          <span class="exp-icon">⚠️</span>
+          <div>
+            <div>CSV 仅死链</div>
+            <div class="exp-desc">只导出失效链接</div>
+          </div>
+        </button>
+        <div class="export-sep"></div>
+        <button class="export-option" data-format="html">
+          <span class="exp-icon">🌐</span>
+          <div>
+            <div>HTML 报告</div>
+            <div class="exp-desc">精美可视化报告，可分享</div>
+          </div>
+        </button>
+        <button class="export-option" data-format="json">
+          <span class="exp-icon">{ }</span>
+          <div>
+            <div>JSON 数据</div>
+            <div class="exp-desc">结构化数据，方便程序处理</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Scripts -->
+<script src="src/exporter.js"></script>
+<script src="src/popup.js"></script>
+</body>
+</html>
