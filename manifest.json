@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "死链猎手",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "扫描当前网页的所有链接，自动检测死链并支持多格式导出报告",
   "permissions": [
     "activeTab",
